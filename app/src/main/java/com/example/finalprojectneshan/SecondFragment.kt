@@ -1,5 +1,6 @@
 package com.example.finalprojectneshan
 
+
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -7,7 +8,6 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.KeyEvent
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +15,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.carto.styles.MarkerStyle
@@ -27,8 +28,11 @@ import org.neshan.servicessdk.search.model.NeshanSearchResult
 import retrofit2.Callback
 
 
-class SecondFragment( private val location : LatLng)
-    : Fragment() {
+
+
+class SecondFragment(private val location: LatLng, private val onDataPass: PassDataToActivity) :
+    Fragment(),
+    SearchAdapter.OnSearchItemListener {
 
 
     val MY_CONSTANT = "service.4ccd66d4b31f4d8bb354e0311f98d5cc"
@@ -37,7 +41,6 @@ class SecondFragment( private val location : LatLng)
     private lateinit var recyclerView: RecyclerView
     private lateinit var items: List<Item>
     private lateinit var adapter: SearchAdapter
-
 
 
     @SuppressLint("MissingInflatedId")
@@ -50,13 +53,16 @@ class SecondFragment( private val location : LatLng)
         editText = v.findViewById(R.id.SearchEditText)
         recyclerView = v.findViewById(R.id.recyclerView)
         return v
+
     }
+
 
     override fun onStart() {
         super.onStart()
         // everything related to ui is initialized here
         initLayoutReferences()
     }
+
 
     // Initializing layout references (views, map and map events)
     private fun initLayoutReferences() {
@@ -74,26 +80,26 @@ class SecondFragment( private val location : LatLng)
             }
         })
 
-        editText.setOnEditorActionListener(object : TextView.OnEditorActionListener{
+        editText.setOnEditorActionListener(object : TextView.OnEditorActionListener {
             override fun onEditorAction(p0: TextView?, p1: Int, p2: KeyEvent?): Boolean {
-                if(p1 == EditorInfo.IME_ACTION_SEARCH){
+                if (p1 == EditorInfo.IME_ACTION_SEARCH) {
                     closeKeyBoard()
                     search(editText.text.toString())
                 }
                 return false
             }
         })
+
     }
 
     // We use findViewByID for every element in our layout file here
     private fun initViews() {
 
         items = java.util.ArrayList()
-        adapter = SearchAdapter(items,this)
+        adapter = SearchAdapter(items, this)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
     }
-
 
     private fun search(term: String) {
         val searchPosition: LatLng = location
@@ -145,7 +151,6 @@ class SecondFragment( private val location : LatLng)
     }
 
 
-
     private fun getMarkerStyle(size: Float): MarkerStyle? {
         val styleCreator = MarkerStyleBuilder()
         styleCreator.size = size
@@ -186,10 +191,10 @@ class SecondFragment( private val location : LatLng)
         }
     }
 
-    fun onSearchItemClick(LatLng: LatLng?) {
+    override fun onSearchItemClick(item: Item?) {
         closeKeyBoard()
         adapter.updateList(java.util.ArrayList())
-
+        onDataPass.passData(item)
 
     }
 

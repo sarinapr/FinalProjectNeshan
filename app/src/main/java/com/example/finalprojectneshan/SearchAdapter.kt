@@ -11,7 +11,7 @@ import org.neshan.servicessdk.search.model.Item
 
 class SearchAdapter(
     private var items: List<Item>,
-    private val onSearchItemListener: SecondFragment
+    private val onSearchItemListener: OnSearchItemListener,
 ) : RecyclerView.Adapter<SearchAdapter.ViewHolder?>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view: View =
@@ -20,8 +20,8 @@ class SearchAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.tvTitle.text = items[position].title
-        holder.tvAddress.text = items[position].address
+        holder.bind(items[position])
+        holder.bind2(items[position])
     }
 
     override fun getItemCount(): Int {
@@ -33,22 +33,32 @@ class SearchAdapter(
         notifyDataSetChanged()
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
-        View.OnClickListener {
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvTitle: TextView = itemView.findViewById(R.id.textView_title)
         val tvAddress: TextView = itemView.findViewById(R.id.textView_address)
-        override fun onClick(v: View) {
-            val location = items[adapterPosition].location
-            val LatLng = LatLng(location.latitude, location.longitude)
-            onSearchItemListener.onSearchItemClick(LatLng)
-        }
 
         init {
-            itemView.setOnClickListener(this)
+            itemView.setOnClickListener {
+                val location = items[adapterPosition].location
+                val LatLng = LatLng(location.latitude, location.longitude)
+                onSearchItemListener.onSearchItemClick(items[adapterPosition])
+            }
+
         }
+
+        fun bind(item: Item) {
+            tvTitle.text = item.title
+            tvAddress.text = item.address
+        }
+        fun bind2(data:Item){
+            tvTitle.text=data.address
+            tvAddress.text=data.address
+        }
+
     }
 
     interface OnSearchItemListener {
-        fun onSearchItemClick(LatLng: LatLng?)
+        fun onSearchItemClick(LatLng: Item?)
     }
+
 }

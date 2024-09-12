@@ -1,7 +1,6 @@
 package com.example.finalprojectneshan
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -12,7 +11,6 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -34,10 +32,11 @@ import com.google.android.gms.tasks.OnSuccessListener
 import org.neshan.common.model.LatLng
 import org.neshan.mapsdk.MapView
 import org.neshan.mapsdk.model.Marker
+import org.neshan.servicessdk.search.model.Item
 import java.text.DateFormat
 import java.util.Date
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),PassDataToActivity {
     private val TAG: String = MainActivity::class.java.name
 
     // used to track request permissions
@@ -67,16 +66,13 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initViews()
-//        val firstFragment = FirstFragment(map.cameraTargetPosition)
-        val secondFragment = SecondFragment(map.cameraTargetPosition)
+        val secondFragment = SecondFragment(map.cameraTargetPosition,this)
+        val thirdFragment=ThirdFragment(map.cameraTargetPosition,this)
         val editText1 = findViewById<EditText>(R.id.EditText1)
         val editText2 = findViewById<EditText>(R.id.EditText2)
         val secondFragmentLayout = R.id.flFragment
+        val thirdFragmentLayout=R.id.flFragment
 
-//        supportFragmentManager.beginTransaction().apply {
-//            replace(R.id.flFragment,firstFragment)
-//            commit()
-//        }
         editText1.setOnClickListener {
             supportFragmentManager.beginTransaction().apply {
                 replace(secondFragmentLayout, secondFragment)
@@ -86,12 +82,14 @@ class MainActivity : AppCompatActivity() {
         }
         editText2.setOnClickListener {
             supportFragmentManager.beginTransaction().apply {
-                replace(secondFragmentLayout, secondFragment)
+                replace(thirdFragmentLayout,thirdFragment)
                 addToBackStack(null)
                 commit()
+
             }
         }
     }
+
 
     override fun onStart() {
         super.onStart()
@@ -345,5 +343,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun passData(item: Item?) {
+        val passData=findViewById<EditText>(R.id.EditText1)
+        passData.setText(item?.address)
+    }
+    override fun passSecondData(data: Item?){
+        val passSecondData=findViewById<EditText>(R.id.EditText2)
+        passSecondData.setText(data?.address)
     }
 }
