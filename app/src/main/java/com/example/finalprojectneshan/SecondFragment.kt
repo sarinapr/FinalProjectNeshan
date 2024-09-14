@@ -189,6 +189,7 @@ class SecondFragment(private val location: LatLng, private val onDataPass: PassD
         if (items.isNotEmpty()) {
 
         }
+
     }
 
     override fun onSearchItemClick(item: Item?) {

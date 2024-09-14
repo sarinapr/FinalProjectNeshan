@@ -91,4 +91,7 @@ dependencies {
     //retrofit
     implementation ("com.squareup.retrofit2:retrofit:2.6.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.6.0")
+
+    //dexter
+    implementation ("com.karumi:dexter:6.2.2")
 }

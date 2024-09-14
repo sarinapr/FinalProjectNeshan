@@ -11,10 +11,20 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.CompoundButton
 import android.widget.EditText
 import android.widget.Toast
+import android.widget.ToggleButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.Button
 import androidx.core.content.ContextCompat
+import com.carto.graphics.Color
+import com.carto.styles.AnimationStyle
+import com.carto.styles.AnimationStyleBuilder
+import com.carto.styles.AnimationType
+import com.carto.styles.LineStyle
+import com.carto.styles.LineStyleBuilder
 import com.carto.styles.MarkerStyleBuilder
 import com.carto.utils.BitmapUtils
 import com.google.android.gms.common.api.ApiException
@@ -30,13 +40,21 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.location.SettingsClient
 import com.google.android.gms.tasks.OnSuccessListener
 import org.neshan.common.model.LatLng
+import org.neshan.common.utils.PolylineEncoding
 import org.neshan.mapsdk.MapView
 import org.neshan.mapsdk.model.Marker
+import org.neshan.mapsdk.model.Polyline
+import org.neshan.servicessdk.direction.NeshanDirection
+import org.neshan.servicessdk.direction.model.NeshanDirectionResult
+import org.neshan.servicessdk.direction.model.Route
 import org.neshan.servicessdk.search.model.Item
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.DateFormat
 import java.util.Date
 
-class MainActivity : AppCompatActivity(),PassDataToActivity {
+class MainActivity: AppCompatActivity(),PassDataToActivity{
     private val TAG: String = MainActivity::class.java.name
 
     // used to track request permissions
@@ -62,6 +80,8 @@ class MainActivity : AppCompatActivity(),PassDataToActivity {
     private var marker: Marker? = null
     lateinit var textInput: EditText
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -70,6 +90,7 @@ class MainActivity : AppCompatActivity(),PassDataToActivity {
         val thirdFragment=ThirdFragment(map.cameraTargetPosition,this)
         val editText1 = findViewById<EditText>(R.id.EditText1)
         val editText2 = findViewById<EditText>(R.id.EditText2)
+        val button=findViewById<Button>(R.id.Button)
         val secondFragmentLayout = R.id.flFragment
         val thirdFragmentLayout=R.id.flFragment
 
@@ -88,6 +109,14 @@ class MainActivity : AppCompatActivity(),PassDataToActivity {
 
             }
         }
+        button.setOnClickListener {
+            supportFragmentManager.beginTransaction().apply {
+                replace(R.id.flFragment, DelayFragment())
+                addToBackStack(null)
+                commit()
+            }
+        }
+
     }
 
 
@@ -98,12 +127,18 @@ class MainActivity : AppCompatActivity(),PassDataToActivity {
         // Initializing user location
         initLocation()
         startReceivingLocationUpdates()
+
+    }
+    override fun onResume() {
+        super.onResume()
+        startLocationUpdates()
     }
 
     override fun onPause() {
         super.onPause()
         stopLocationUpdates()
     }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -133,6 +168,10 @@ class MainActivity : AppCompatActivity(),PassDataToActivity {
         // Initializing views ()
         // Initializing mapView element
         initMap()
+        // Initializing views
+        initViews()
+
+
     }
 
     private fun initMap() {
@@ -143,6 +182,7 @@ class MainActivity : AppCompatActivity(),PassDataToActivity {
 
     private fun initViews() {
         map = findViewById(R.id.mapview)
+
     }
 
     private fun initLocation() {
@@ -345,6 +385,7 @@ class MainActivity : AppCompatActivity(),PassDataToActivity {
         }
     }
 
+
     override fun passData(item: Item?) {
         val passData=findViewById<EditText>(R.id.EditText1)
         passData.setText(item?.address)
@@ -353,4 +394,7 @@ class MainActivity : AppCompatActivity(),PassDataToActivity {
         val passSecondData=findViewById<EditText>(R.id.EditText2)
         passSecondData.setText(data?.address)
     }
+
+
+
 }
