@@ -1,6 +1,7 @@
 package com.example.finalprojectneshan
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
@@ -11,13 +12,10 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.CompoundButton
 import android.widget.EditText
 import android.widget.Toast
 import android.widget.ToggleButton
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.Button
 import androidx.core.content.ContextCompat
 import com.carto.graphics.Color
 import com.carto.styles.AnimationStyle
@@ -79,20 +77,43 @@ class MainActivity: AppCompatActivity(),PassDataToActivity{
     private var mRequestingLocationUpdates: Boolean? = null
     private var marker: Marker? = null
     lateinit var textInput: EditText
+////////
+// define two toggle button and connecting together for two type of routing
+private lateinit var overviewToggleButton: ToggleButton
+    private lateinit var stepByStepToggleButton: ToggleButton
+
+    // we save decoded Response of routing encoded string because we don't want request every time we clicked toggle buttons
+    private var routeOverviewPolylinePoints: ArrayList<LatLng>? = null
+    private var decodedStepByStepPath: ArrayList<LatLng>? = null
+
+    // value for difference mapSetZoom
+    private var overview = false
+
+    // Marker that will be added on map
+    private lateinit var mark: Marker
+
+    // List of created markers
+    private val markers: ArrayList<Marker> = ArrayList()
+
+    // marker animation style
+    private var animSt: AnimationStyle? = null
+
+    // drawn path of route
+    private var onMapPolyline: Polyline? = null
 
 
-
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initViews()
-        val secondFragment = SecondFragment(map.cameraTargetPosition,this)
-        val thirdFragment=ThirdFragment(map.cameraTargetPosition,this)
+        val secondFragment = SecondFragment(map.cameraTargetPosition, this)
+        val thirdFragment = ThirdFragment(map.cameraTargetPosition, this)
         val editText1 = findViewById<EditText>(R.id.EditText1)
         val editText2 = findViewById<EditText>(R.id.EditText2)
-        val button=findViewById<Button>(R.id.Button)
+        val button = findViewById<EditText>(R.id.Button)
         val secondFragmentLayout = R.id.flFragment
-        val thirdFragmentLayout=R.id.flFragment
+        val thirdFragmentLayout = R.id.flFragment
 
         editText1.setOnClickListener {
             supportFragmentManager.beginTransaction().apply {
@@ -103,20 +124,27 @@ class MainActivity: AppCompatActivity(),PassDataToActivity{
         }
         editText2.setOnClickListener {
             supportFragmentManager.beginTransaction().apply {
-                replace(thirdFragmentLayout,thirdFragment)
+                replace(thirdFragmentLayout, thirdFragment)
                 addToBackStack(null)
                 commit()
 
             }
         }
         button.setOnClickListener {
+//            val origin = editText1.text.toString()
+//            val destination = editText2.text.toString()
+//            val bundle = Bundle()
+//            bundle.putString("key_origin", origin)
+//            bundle.putString("key_destination", destination)
+//            val fragment =DelayFragment()//next fragment
+//            fragment.arguments = bundle
             supportFragmentManager.beginTransaction().apply {
                 replace(R.id.flFragment, DelayFragment())
                 addToBackStack(null)
                 commit()
+
             }
         }
-
     }
 
 
@@ -171,8 +199,29 @@ class MainActivity: AppCompatActivity(),PassDataToActivity{
         // Initializing views
         initViews()
 
+        map.setOnMapLongClickListener {
+            if (markers.size < 2) {
+                markers.add(addMarker(it))
+                if (markers.size == 2) {
+                    runOnUiThread {
+                        overviewToggleButton.isChecked = true
+                        neshanRoutingApi()
+                    }
+                }
+            } else {
+                runOnUiThread {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "مسیریابی بین دو نقطه انجام میشود!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+
 
     }
+
 
     private fun initMap() {
         // Setting map focal position to a fixed position and setting camera zoom
@@ -183,6 +232,37 @@ class MainActivity: AppCompatActivity(),PassDataToActivity{
     private fun initViews() {
         map = findViewById(R.id.mapview)
 
+    }
+
+    // call this function with clicking on toggle buttons and draw routing line depend on type of routing requested
+    fun findRoute(view: View?) {
+        if (markers.size < 2) {
+            Toast.makeText(
+                this,
+                "برای مسیریابی باید دو نقطه انتخاب شود",
+                Toast.LENGTH_SHORT
+            ).show()
+            overviewToggleButton.isChecked = false
+            stepByStepToggleButton.isChecked = false
+        } else if (overviewToggleButton.isChecked) {
+            try {
+                map.removePolyline(onMapPolyline)
+                onMapPolyline = Polyline(routeOverviewPolylinePoints, getLineStyle())
+                //draw polyline between route points
+                map.addPolyline(onMapPolyline)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else if (stepByStepToggleButton.isChecked) {
+            try {
+                map.removePolyline(onMapPolyline)
+                onMapPolyline = Polyline(decodedStepByStepPath, getLineStyle())
+                //draw polyline between route points
+                map.addPolyline(onMapPolyline)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     private fun initLocation() {
@@ -349,6 +429,39 @@ class MainActivity: AppCompatActivity(),PassDataToActivity{
 
         map.enableUserMarkerRotation(marker)
     }
+
+///
+    private fun addMarker(loc: LatLng): Marker {
+        // Creating animation for marker. We should use an object of type AnimationStyleBuilder, set
+        // all animation features on it and then call buildStyle() method that returns an object of type
+        // AnimationStyle
+        val animStBl = AnimationStyleBuilder()
+        animStBl.fadeAnimationType = AnimationType.ANIMATION_TYPE_SMOOTHSTEP
+        animStBl.sizeAnimationType = AnimationType.ANIMATION_TYPE_SPRING
+        animStBl.phaseInDuration = 0.5f
+        animStBl.phaseOutDuration = 0.5f
+        animSt = animStBl.buildStyle()
+
+        // Creating marker style. We should use an object of type MarkerStyleBuilder, set all features on it
+        // and then call buildStyle method on it. This method returns an object of type MarkerStyle
+        val markStCr = MarkerStyleBuilder()
+        markStCr.size = 30f
+        markStCr.bitmap = BitmapUtils.createBitmapFromAndroidBitmap(
+            BitmapFactory.decodeResource(
+                resources, R.drawable.ic_marker
+            )
+        )
+        // AnimationStyle object - that was created before - is used here
+        markStCr.animationStyle = animSt
+        val markSt = markStCr.buildStyle()
+
+        // Creating marker
+        mark= Marker(loc, markSt)
+
+        // Adding marker to markerLayer, or showing marker on map!
+        map.addMarker(mark)
+        return mark
+    }
     fun focusOnUserLocation(view: View?) {
         if (userLocation != null) {
             map.moveCamera(
@@ -385,16 +498,91 @@ class MainActivity: AppCompatActivity(),PassDataToActivity{
         }
     }
 
+    // request routing method from Neshan Server
+    private fun neshanRoutingApi() {
+        NeshanDirection.Builder(
+            "service.VNlPhrWb3wYRzEYmstQh3GrAXyhyaN55AqUSRR3V",
+            markers[0].latLng,
+            markers[1].latLng
+        )
+            .build().call(object : Callback<NeshanDirectionResult?> {
+                override fun onResponse(
+                    call: Call<NeshanDirectionResult?>,
+                    response: Response<NeshanDirectionResult?>
+                ) {
+
+                    // two type of routing
+                    if (response.body() != null && response.body()!!.routes != null && !response.body()!!.routes.isEmpty()
+                    ) {
+                        val route: Route = response.body()!!.routes[0]
+                        routeOverviewPolylinePoints = java.util.ArrayList(
+                            PolylineEncoding.decode(
+                                route.overviewPolyline.encodedPolyline
+                            )
+                        )
+                        decodedStepByStepPath = java.util.ArrayList()
+
+                        // decoding each segment of steps and putting to an array
+                        for (step in route.legs[0].directionSteps) {
+                            decodedStepByStepPath!!.addAll(PolylineEncoding.decode(step.encodedPolyline))
+                        }
+                        onMapPolyline = Polyline(routeOverviewPolylinePoints, getLineStyle())
+                        //draw polyline between route points
+                        map.addPolyline(onMapPolyline)
+                        // focusing camera on first point of drawn line
+                        mapSetPosition(overview)
+                    } else {
+                        Toast.makeText(this@MainActivity, "مسیری یافت نشد", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                }
+
+                override fun onFailure(call: Call<NeshanDirectionResult?>, t: Throwable) {
+                    Toast.makeText(this@MainActivity, "خطا در دریافت اطلاعات: ${t.message}", Toast.LENGTH_LONG).show()
+                }
+            })
+    }
+    private fun getLineStyle(): LineStyle {
+        val lineStCr = LineStyleBuilder()
+        lineStCr.color = Color(
+            2.toShort(), 119.toShort(), 189.toShort(),
+            190.toShort()
+        )
+        lineStCr.width = 10f
+        lineStCr.stretchFactor = 0f
+        return lineStCr.buildStyle()
+    }
+    private fun mapSetPosition(overview: Boolean) {
+        val centerFirstMarkerX = markers[0].latLng.latitude
+        val centerFirstMarkerY = markers[0].latLng.longitude
+        if (overview) {
+            val centerFocalPositionX = (centerFirstMarkerX + markers[1].latLng.latitude) / 2
+            val centerFocalPositionY = (centerFirstMarkerY + markers[1].latLng.longitude) / 2
+            map.moveCamera(LatLng(centerFocalPositionX, centerFocalPositionY), 0.5f)
+            map.setZoom(14f, 0.5f)
+        } else {
+            map.moveCamera(LatLng(centerFirstMarkerX, centerFirstMarkerY), 0.5f)
+            map.setZoom(14f, 0.5f)
+        }
+    }
+
+
+
+
 
     override fun passData(item: Item?) {
         val passData=findViewById<EditText>(R.id.EditText1)
         passData.setText(item?.address)
+
     }
     override fun passSecondData(data: Item?){
         val passSecondData=findViewById<EditText>(R.id.EditText2)
         passSecondData.setText(data?.address)
+
     }
 
 
 
+
 }
+

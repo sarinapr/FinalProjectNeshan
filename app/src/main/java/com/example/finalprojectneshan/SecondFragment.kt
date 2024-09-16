@@ -30,7 +30,8 @@ import retrofit2.Callback
 
 
 
-class SecondFragment(private val location: LatLng, private val onDataPass: PassDataToActivity) :
+class SecondFragment(private val location: LatLng, private val onDataPass: PassDataToActivity,
+) :
     Fragment(),
     SearchAdapter.OnSearchItemListener {
 
@@ -194,10 +195,15 @@ class SecondFragment(private val location: LatLng, private val onDataPass: PassD
 
     override fun onSearchItemClick(item: Item?) {
         closeKeyBoard()
+
         adapter.updateList(java.util.ArrayList())
         onDataPass.passData(item)
+//        getCenterMarkerStyle()
+//        getMarkerStyle(2f)
+
 
     }
+
 
 
 }

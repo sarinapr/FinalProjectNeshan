@@ -5,28 +5,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-    <Button
-        android:id="@+id/Button"
-        android:layout_width="300dp"
-        android:layout_height="40dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="700dp"
-        android:layout_marginRight="8dp"
-        android:background="@drawable/custom_button"
-        android:fontFamily="@font/iranyekanmobilebold"
-        android:text="Search for driver."
-        android:textColor="@color/white"
-        android:textSize="17sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        />
+
     <org.neshan.mapsdk.MapView
         android:id="@+id/mapview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:onClick="focusOnUserLocation"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toBottomOf="@+id/flFragment"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_my_location" />
 
     <EditText
         android:id="@+id/EditText1"
@@ -38,8 +32,8 @@
         android:layout_marginBottom="10dp"
         android:background="@drawable/custom_button"
         android:fontFamily="@font/iranyekanmobilebold"
-        android:text="origin"
-        android:textColor="@color/white"
+        android:hint="origin"
+        android:textColorHint="@color/white"
         android:textSize="17sp"
         app:layout_constraintBottom_toTopOf="@+id/EditText2"
         app:layout_constraintEnd_toEndOf="parent"
@@ -55,24 +49,29 @@
         android:layout_marginBottom="10dp"
         android:background="@drawable/custom_button"
         android:fontFamily="@font/iranyekanmobilebold"
-        android:text="destination"
-        android:textColor="@color/white"
+        android:hint="destination"
+        android:textColorHint="@color/white"
         android:textSize="17sp"
         app:layout_constraintBottom_toTopOf="@+id/Button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:onClick="focusOnUserLocation"
-        app:fabSize="normal"
+    <EditText
+        android:id="@+id/Button"
+        android:layout_width="300dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="700dp"
+        android:layout_marginRight="8dp"
+        android:background="@drawable/custom_button"
+        android:fontFamily="@font/iranyekanmobilebold"
+        android:text="Search for driver."
+        android:textColor="@color/white"
+        android:textSize="17sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_my_location" />
+        app:layout_constraintStart_toStartOf="parent"
+        />
+
 
     <FrameLayout
         android:id="@+id/flFragment"

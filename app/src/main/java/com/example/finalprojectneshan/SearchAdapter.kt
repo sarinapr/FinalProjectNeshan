@@ -42,6 +42,7 @@ class SearchAdapter(
                 val location = items[adapterPosition].location
                 val LatLng = LatLng(location.latitude, location.longitude)
                 onSearchItemListener.onSearchItemClick(items[adapterPosition])
+
             }
 
         }

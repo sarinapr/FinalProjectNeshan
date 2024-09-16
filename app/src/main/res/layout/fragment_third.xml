@@ -42,19 +42,19 @@
         android:layout_centerHorizontal="true"
         android:text="" />
 
-<!--    <ImageButton-->
-<!--        android:id="@+id/show_search_imageButton"-->
-<!--        android:layout_width="100dp"-->
-<!--        android:layout_height="50dp"-->
-<!--        android:layout_below="@id/SearchEditText2"-->
-<!--        android:layout_marginLeft="15dp"-->
-<!--        android:layout_marginTop="4dp"-->
-<!--        android:layout_marginBottom="4dp"-->
-<!--        android:layout_toRightOf="@+id/center_point"-->
-<!--        android:background="@drawable/toggle_button_on_bg"-->
-<!--        android:onClick="showSearchClick"-->
-<!--        app:srcCompat="@drawable/ic_list_search"-->
-<!--        app:tint="#ffffff" />-->
+    <ImageButton
+        android:id="@+id/show_search_imageButton"
+        android:layout_width="100dp"
+        android:layout_height="50dp"
+        android:layout_below="@id/SearchEditText2"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
+        android:layout_toRightOf="@+id/center_point"
+        android:background="@drawable/toggle_button_on_bg"
+        android:onClick="showSearchClick"
+        app:srcCompat="@drawable/ic_list_search"
+        app:tint="#ffffff" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView2"
